@@ -1,0 +1,33 @@
+CompileFlags:
+  Add:
+    - "-I/usr/share/sdcc/include/mcs51"
+    - "-I/usr/share/sdcc/include"
+    - "-D__sfr=volatile unsigned char"
+    - "-D__sbit=volatile unsigned char"
+    - "-D__bit=unsigned char"
+    - "-D__sfr16=volatile unsigned short"
+    - "-D__sfr32=volatile unsigned long"
+    - "-D__at(x)="
+    - "-D__data="
+    - "-D__xdata="
+    - "-D__idata="
+    - "-D__pdata="
+    - "-D__code=const"
+    - "-D__far="
+    - "-D__near="
+    - "-D__naked="
+    - "-D__critical="
+    - "-D__intrinsic="
+    - "-D__no_init="
+    - "-D__no_operation="
+    - "-D__sdcc_banked_call="
+    - "-D__interrupt(n)="
+    - "-D__using(n)="
+    - "-Wno-main"
+Diagnostics:
+  ClangTidy:
+    Remove:
+      - "google-*"
+      - "readability-*"
+      - "performance-*"
+      - "modernize-*"
