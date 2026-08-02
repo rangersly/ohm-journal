@@ -12,13 +12,13 @@
 
 启动一个wsl2终端保持运行
 
-`usbipd lsit` 记录下单片机设备的 `BUSID`
+`usbipd list` 记录下单片机设备的 `BUSID`
 
 `usbipd bind --busid <busid>` 绑定设备
 
 `usbipd attach --wsl --busid <BUSID>` 连接到设备
 
-最后在wsl2环境中验证连接即可
+最后在wsl2环境中验证连接即可 `ls /dev/tty*`
 
 如果遇到权限问题记得手动给`ttyUSB`赋予666权限
 
@@ -38,10 +38,21 @@
 针对8051单片机
 
 - **内存类型修饰符**
-- `__code` : 将变量存储在代码区 ROM
+- `__code` : 存储在 Flash, 通常为常量,字符串
 - `__data`：将变量存储在内部 RAM（直接寻址区）。
+- `__idata`：将变量存储在内部 RAM（间接寻址区）。
 - `__xdata`：将变量存储在外部 RAM（扩展 XDATA 区）。
+- `sfr/sbit`：特殊寄存器
 - `__bit`：定义位变量（仅限 8051 的位寻址区）。
+
+### 指针
+
+sdcc 支持两种指针:
+
+|类型|效果|
+|---|---|
+|通用指针(3B)|可指向任意空间,灵活但体积大,速度慢|
+|指定存储空间的指针(1~2B)|如`unsigned char xdata *p;`仅指向xdata,但效率高|
 
 ### **优化选项**
 
@@ -52,6 +63,12 @@
   - `--stack-auto`：自动分配堆栈（适用于函数调用）。
   - `--nooverlay`：禁用函数参数和局部变量的覆盖优化。
   - `--verbose`：显示详细编译过程。
+
+### 与KEIL的写法差异
+
+|KEIL|SDCC|
+|---|---|
+|`sfr P0 = 0x80;`|`__sfr at(0x80) P0;`|
 
 ## stcgal
 
