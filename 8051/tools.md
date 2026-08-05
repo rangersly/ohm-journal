@@ -68,7 +68,9 @@ sdcc 支持两种指针:
 
 |KEIL|SDCC|
 |---|---|
-|`sfr P0 = 0x80;`|`__sfr at(0x80) P0;`|
+|`sfr P0 = 0x80;`|`__sfr __at(0x80) P0;`|
+|`sbit P0_0 = 0x80;`|`__sbit __at(0x80) P0_0;`|
+|`data`,`idata`,`xdata`,`code`|`__data`,`__idata`,`__xdata`,`__code`|
 
 ## stcgal
 
