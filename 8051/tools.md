@@ -3,6 +3,7 @@
 - [wsl连接到物理机](#usbipd)
 - [编译工具](#sdcc)
 - [烧录工具](#stcgal)
+- [内存分析](#ram)
 
 ## usbipd
 
@@ -103,6 +104,64 @@ direnv allow
 |参数|功能|
 |---|---|
 |`-p <串口>`|指定串口设备|
+|`-o <option>`|设置参数,例如6t模式|
 |`-b <波特率>`|指定波特率(默认115200)|
 
 `stcgal -p <设备>` 这个方法可以检测芯片信息
+
+## ram
+
+8051的内存吃紧,需要分析编译完成后的 `.map` 文件以保证不会出错
+
+|区域|作用|
+|---|---|
+|`CABS`|`falsh` 存储大小|
+|`SEG`|RAM大小,一般看`SSEG`栈顶指针位置|
+|`CONST`|常量|
+
+又研究了一下,感觉 `.mem` 文件更好看,但是有几个坑,下面贴出 `.mem` 内容解释
+
+```
+Internal RAM layout:
+      0 1 2 3 4 5 6 7 8 9 A B C D E F
+0x00:|0|0|0|0|0|0|0|0|a|a|a|a|a|a|a|a|
+0x10:|Q|Q|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x20:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x30:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x40:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x50:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x60:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x70:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x80:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0x90:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xa0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xb0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xc0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xd0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xe0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0xf0:|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|S|
+0-3:Reg Banks, T:Bit regs, a-z:Data, B:Bits, Q:Overlay, I:iData, S:Stack, A:Absolute
+
+Stack starts at: 0x12 (sp set to 0x11) with 238 bytes available.
+No spare internal RAM space left.
+
+Other memory:
+   Name             Start    End      Size     Max     
+   ---------------- -------- -------- -------- --------
+   PAGED EXT. RAM                         0      256   
+   EXTERNAL RAM                           0    65536   
+   ROM/EPROM/FLASH  0x0000   0x0186     391    65536   
+```
+
+|标记|作用|
+|---|---|
+|`0`|0x00~0x07八字节为工作寄存器|
+|`a(DATA)`|0x08~0x0F,全局/静态变量存放区|
+|`Q(Overlay)`|覆盖层区域,将互不调用的函数中局部变量或参数复用在这里|
+|`S`|栈区,低于0x7F为硬件栈,SP指针可以到的地方,保存返回地址和中断现场,而高区只能用来存放临时变量等|
+
+> [!IMPORTANT]
+> 0x20~0x2F为可位寻址区
+
+> [!NOTE]
+> 可以通过 `.lst` 来找PUSH指令分析栈顶极限位置
